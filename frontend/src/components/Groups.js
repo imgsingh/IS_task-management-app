@@ -12,6 +12,7 @@ import {
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import Navbar from './Navbar';
 
 function Groups() {
     const [groups, setGroups] = useState([]);
@@ -69,6 +70,7 @@ function Groups() {
 
     return (
         <div>
+            <Navbar />
             <Typography variant="h5" gutterBottom>
                 Groups
             </Typography>

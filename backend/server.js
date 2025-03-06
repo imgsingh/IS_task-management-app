@@ -3,16 +3,20 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const nodemailer = require("nodemailer");
 require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:3001', // Allow requests from this origin
+  credentials: true, // Allow cookies to be sent
+}));
 app.use(express.json());
 
-// const crypto = require('crypto');
+const crypto = require('crypto');
 // const secretKey = crypto.randomBytes(64).toString('hex');
 // console.log(secretKey);
 
@@ -56,6 +60,54 @@ const Group = mongoose.model('Group', groupSchema);
 
 // User Authentication Routes (Signup, Login)
 // API Route for User Signup
+app.post("/api/users/forgot-password", async (req, res) => {
+  try {
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Generate a unique token
+    const token = crypto.randomBytes(32).toString("hex");
+
+    // Save the token to the user's document with an expiration time (e.g., 1 hour)
+    user.resetToken = token;
+    user.resetTokenExpiration = Date.now() + 3600000; // 1 hour
+    await user.save();
+
+    // Send password reset email (using Nodemailer)
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: 'gbasra09@gmail.com',
+        pass: 'Gursimran1!',
+      },
+    });
+
+    const mailOptions = {
+      from: "gbasra09@gmail.com",
+      to: email,
+      subject: "Password Reset Request",
+      html: `
+        <p>You are receiving this email because you (or someone else) has requested the reset of the password for your account.</p>
+        <p>Please click on the following link, or paste this into your browser to complete the process:</p>
+        <a href="<span class="math-inline">\{config\.frontendUrl\}/reset\-password/</span>{token}"><span class="math-inline">\{config\.frontendUrl\}/<14\>reset\-password/</span>{token}</a>
+        <p>If you did not request this, please ignore this email and your password will remain unchanged.</p>
+      `,
+    };
+
+    await transporter.sendMail(mailOptions);
+
+    res.json({ message: "Password reset email sent" });
+  } catch (error) {
+    console.error("Error sending password reset email:", error);
+    res.status(500).json({ message: "Failed to send reset email" });
+  }
+});
+
+
 app.post('/api/users/signup', async (req, res) => {
   try {
     const { name, username, password } = req.body;
@@ -107,7 +159,7 @@ app.post('/api/users/login', async (req, res) => {
 
     // Generate JWT
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET);
-
+    res.cookie('jwt', token, { httpOnly: true, maxAge: 3600000 });
     res.json({ token, userId: user._id });
   } catch (error) {
     console.error('Error logging in user:', error);

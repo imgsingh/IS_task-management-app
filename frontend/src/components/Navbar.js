@@ -1,11 +1,28 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
+import Cookies from 'js-cookie';
+import config from '../config';
+import axios from 'axios';
 
 function Navbar() {
+
+    const navigate = useNavigate();
+
+    const handleLogout = async () => {
+        try {
+            await axios.get(`${config.apiUrl}/api/users/logout`, { withCredentials: true });
+            Cookies.remove('jwt'); // Remove the cookie
+            navigate('/');
+        } catch (error) {
+            console.error('Logout failed:', error);
+            // Optionally, display an error message to the user
+        }
+    };
+
     return (
         <AppBar position="static">
             <Toolbar>
@@ -20,11 +37,8 @@ function Navbar() {
                 <Button color="inherit" component={Link} to="/groups">
                     Groups
                 </Button>
-                <Button color="inherit" component={Link} to="/login">
-                    Login
-                </Button>
-                <Button color="inherit" component={Link} to="/signup">
-                    Signup
+                <Button color="inherit" onClick={handleLogout}>
+                    Logout
                 </Button>
             </Toolbar>
         </AppBar>

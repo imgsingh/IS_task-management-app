@@ -17,6 +17,7 @@ import {
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import Navbar from './Navbar';
 
 function Tasks() {
     const [tasks, setTasks] = useState([]);
@@ -105,6 +106,7 @@ function Tasks() {
 
     return (
         <div>
+            <Navbar />
             <Typography variant="h5" gutterBottom>
                 Tasks
             </Typography>

@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import config from './../config';
+import Cookies from 'js-cookie';
 import {
     Avatar,
     Button,
@@ -17,6 +19,7 @@ import {
     ThemeProvider,
 } from '@mui/material';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
+import { toast } from 'react-toastify';
 
 const theme = createTheme();
 
@@ -37,13 +40,17 @@ function Login() {
     const handleSubmit = async (event) => {
         event.preventDefault();
         try {
-            const response = await axios.post('/api/users/login', formData);
-            // Store JWT in localStorage or cookies
-            // Redirect to tasks page or dashboard
-            navigate('/tasks');
+            const response = await axios.post(`${config.apiUrl}/api/users/login`, formData);
+            if (response.data.token) {
+                const jwtToken = response.data.token;
+                const oneHourFromNow = new Date(new Date().getTime() + 60 * 60 * 1000);
+                Cookies.set('jwt', jwtToken, { expires: oneHourFromNow, path: '/' });
+                navigate('/tasks');
+            } else {
+                toast.error('Login failed!');
+            }
         } catch (error) {
-            // Handle login error (e.g., display error message)
-            console.error('Login failed:', error);
+            toast.error('Login failed!');
         }
     };
 
@@ -90,10 +97,6 @@ function Login() {
                             value={formData.password}
                             onChange={handleChange}
                         />
-                        <FormControlLabel
-                            control={<Checkbox value="remember" color="primary" />}
-                            label="Remember me"
-                        />
                         <Button
                             type="submit"
                             fullWidth
@@ -104,7 +107,7 @@ function Login() {
                         </Button>
                         <Grid container>
                             <Grid item xs>
-                                <Link href="#" variant="body2">
+                                <Link href="/forgot-password" variant="body2">
                                     Forgot password?
                                 </Link>
                             </Grid>
