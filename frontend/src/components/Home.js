@@ -29,7 +29,7 @@ function Home() {
                 {/* Add more content or components as needed */}
                 <img src={image} alt="Web Support Logo" style={{ width: '100px', height: 'auto' }} />
 
-                <Typography variant="h6" gutterBottom>
+                {/* <Typography variant="h6" gutterBottom>
                     Created by:
                 </Typography>
                 <Grid container spacing={2}>
@@ -43,7 +43,7 @@ function Home() {
                             </div>
                         </Grid>
                     ))}
-                </Grid>
+                </Grid> */}
 
             </div>
         </>
