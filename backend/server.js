@@ -200,7 +200,7 @@ app.post('/api/users/login', async (req, res) => {
 
 app.get('/api/users/verify', (req, res) => {
     try {
-        console.log('Cookies:', req.cookies);
+        console.log('Cookies:', req);
         const token = req.cookies.jwt;
         console.log('Token:', token);
         if (!token) {
