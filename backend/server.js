@@ -200,21 +200,14 @@ app.post('/api/users/login', async (req, res) => {
 
 app.get('/api/users/verify', (req, res) => {
     try {
-        // const cookieHeader = req.headers.cookie;
-        // const cookies = cookieHeader.split('; ');
-        // let token = null;
-        // for (const cookie of cookies) {
-        //     const [name, value] = cookie.split('=');
-        //     if (name === 'jwt') {
-        //         token = value;
-        //         break;
-        //     }
-        // }
+        console.log('Cookies:', req.cookies);
         const token = req.cookies.jwt;
+        console.log('Token:', token);
         if (!token) {
             return res.status(401).json({ message: 'Unauthorized' });
         }
         const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+        console.log("Decoded Token", decodedToken);
         User.findById(decodedToken.userId)
             .then(user => {
                 if (!user) {
