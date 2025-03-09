@@ -4,6 +4,7 @@ const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const nodemailer = require("nodemailer");
+const cookieParser = require('cookie-parser');
 require('dotenv').config();
 
 const app = express();
@@ -20,6 +21,7 @@ app.use(cors({
     credentials: true,
 }));
 app.use(express.json());
+app.use(cookieParser());
 
 const crypto = require('crypto');
 
@@ -193,16 +195,17 @@ app.post('/api/users/login', async (req, res) => {
 
 app.get('/api/users/verify', (req, res) => {
     try {
-        const cookieHeader = req.headers.cookie;
-        const cookies = cookieHeader.split('; ');
-        let token = null;
-        for (const cookie of cookies) {
-            const [name, value] = cookie.split('=');
-            if (name === 'jwt') {
-                token = value;
-                break;
-            }
-        }
+        // const cookieHeader = req.headers.cookie;
+        // const cookies = cookieHeader.split('; ');
+        // let token = null;
+        // for (const cookie of cookies) {
+        //     const [name, value] = cookie.split('=');
+        //     if (name === 'jwt') {
+        //         token = value;
+        //         break;
+        //     }
+        // }
+        const token = req.cookies.jwt;
         if (!token) {
             return res.status(401).json({ message: 'Unauthorized' });
         }
