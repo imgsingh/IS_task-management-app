@@ -2,58 +2,88 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import {
     Typography,
-    List,
-    ListItem,
-    ListItemText,
-    ListItemSecondaryAction,
+    Grid,
+    Card,
+    CardContent,
+    CardActions,
     IconButton,
     TextField,
     Button,
+    Select,
+    MenuItem,
+    InputLabel,
+    FormControl,
+    Chip,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogTitle,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Navbar from './Navbar';
+import config from '../config';
 
 function Groups() {
     const [groups, setGroups] = useState([]);
-    const [newGroup, setNewGroup] = useState({ name: '' });
+    const [newGroup, setNewGroup] = useState({ name: '', members: [] });
     const [editingGroup, setEditingGroup] = useState(null);
+    const [users, setUsers] = useState([]);
+    const [open, setOpen] = useState(false);
+    const [editOpen, setEditOpen] = useState(false); // State for the edit dialog
 
     useEffect(() => {
-        const fetchGroups = async () => {
+
+        const fetchUsers = async () => {
             try {
-                const response = await axios.get('/api/groups');
-                setGroups(response.data);
+                const response = await axios.get(`${config.apiUrl}/api/users`, { withCredentials: true });
+                setUsers(response.data);
             } catch (error) {
-                console.error('Error fetching groups:', error);
+                console.error('Error fetching users:', error);
             }
         };
         fetchGroups();
-    },);
+        fetchUsers();
+    }, []);
+
+    const fetchGroups = async () => {
+        try {
+            const response = await axios.get(`${config.apiUrl}/api/groups`, { withCredentials: true });
+            setGroups(response.data);
+        } catch (error) {
+            console.error('Error fetching groups:', error);
+        }
+    };
 
     const handleGroupChange = (event) => {
-        setNewGroup({ name: event.target.value });
+        setNewGroup({ ...newGroup, [event.target.name]: event.target.value });
+    };
+
+    const handleMemberChange = (event) => {
+        setNewGroup({ ...newGroup, members: event.target.value });
     };
 
     const handleCreateGroup = async () => {
         try {
-            await axios.post('/api/groups', newGroup);
-            setNewGroup({ name: '' });
-            // Re-fetch groups after creating
+            await axios.post(`${config.apiUrl}/api/groups`, newGroup, { withCredentials: true });
+            setNewGroup({ name: '', members: [] });
+            setOpen(false);
+            fetchGroups();
         } catch (error) {
             console.error('Error creating group:', error);
         }
     };
 
     const handleEditGroup = (group) => {
-        setEditingGroup(group);
+        setEditingGroup({ ...group });
+        setEditOpen(true);
     };
 
     const handleUpdateGroup = async (groupId) => {
         try {
-            await axios.put(`/api/groups/${groupId}`, editingGroup);
+            await axios.put(`${config.apiUrl}/api/groups/${groupId}`, editingGroup, { withCredentials: true });
             setEditingGroup(null);
-            // Re-fetch groups after updating
+            setEditOpen(false);
         } catch (error) {
             console.error('Error updating group:', error);
         }
@@ -61,64 +91,154 @@ function Groups() {
 
     const handleDeleteGroup = async (groupId) => {
         try {
-            await axios.delete(`/api/groups/${groupId}`);
-            // Re-fetch groups after deleting
+            await axios.delete(`${config.apiUrl}/api/groups/${groupId}`, { withCredentials: true });
+            fetchGroups();
         } catch (error) {
             console.error('Error deleting group:', error);
         }
     };
 
+    const handleOpen = () => {
+        setOpen(true);
+    };
+
+    const handleClose = () => {
+        setOpen(false);
+        setEditOpen(false);
+    };
+
     return (
         <div>
             <Navbar />
-            <Typography variant="h5" gutterBottom>
-                Groups
-            </Typography>
-            <List>
-                {groups.map((group) => (
-                    <ListItem key={group._id}>
-                        <ListItemText primary={group.name} />
-                        <ListItemSecondaryAction>
-                            <IconButton onClick={() => handleEditGroup(group)}>
-                                <EditIcon />
-                            </IconButton>
-                            <IconButton onClick={() => handleDeleteGroup(group._id)}>
-                                <DeleteIcon />
-                            </IconButton>
-                        </ListItemSecondaryAction>
-                    </ListItem>
-                ))}
-            </List>
-            {/* Form for creating new group */}
-            <Typography variant="h6" gutterBottom>
-                Create New Group
-            </Typography>
-            <TextField
-                label="Group Name"
-                value={newGroup.name}
-                onChange={handleGroupChange}
-                fullWidth
-                margin="normal"
-            />
-            <Button variant="contained" color="primary" onClick={handleCreateGroup}>
-                Create Group
-            </Button>
-            {/* Form for editing existing group (conditionally render) */}
-            {editingGroup && (
-                <div>
-                    <Typography variant="h6" gutterBottom>
-                        Edit Group
+            <Grid container justifyContent="space-between" alignItems="center" style={{ padding: '16px' }}>
+                <Grid item>
+                    <Typography variant="h5" gutterBottom>
+                        Groups
                     </Typography>
-                    {/* Similar form field as create group, but pre-filled with editingGroup data */}
-                    <Button
-                        variant="contained"
-                        color="primary"
-                        onClick={() => handleUpdateGroup(editingGroup._id)}
-                    >
-                        Update Group
+                </Grid>
+                <Grid item>
+                    <Button variant="contained" color="primary" onClick={handleOpen}>
+                        Create Group
                     </Button>
-                </div>
-            )}
+                </Grid>
+            </Grid>
+
+            <Grid container spacing={3} style={{ padding: '16px' }}>
+                {groups.map((group) => (
+                    <Grid item key={group._id} xs={12} sm={6} md={4}>
+                        <Card>
+                            <CardContent>
+                                <Typography variant="h6" component="div">
+                                    {group.name}
+                                </Typography>
+                                <Typography variant="body2" color="text.secondary">
+                                    Members: {group.members.map(member => users.find(user => user._id === member)?.name || member).join(', ')}
+                                </Typography>
+                            </CardContent>
+                            <CardActions>
+                                <IconButton onClick={() => handleEditGroup(group)}>
+                                    <EditIcon />
+                                </IconButton>
+                                <IconButton onClick={() => handleDeleteGroup(group._id)}>
+                                    <DeleteIcon />
+                                </IconButton>
+                            </CardActions>
+                        </Card>
+                    </Grid>
+                ))}
+            </Grid>
+
+            <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
+                <DialogTitle>Create New Group</DialogTitle>
+                <DialogContent>
+                    <TextField
+                        label="Group Name"
+                        name="name"
+                        value={newGroup.name}
+                        onChange={handleGroupChange}
+                        fullWidth
+                        margin="normal"
+                    />
+                    <FormControl fullWidth margin="normal">
+                        <InputLabel id="members-label">Members</InputLabel>
+                        <Select
+                            labelId="members-label"
+                            id="members"
+                            multiple
+                            value={newGroup.members}
+                            label="Members"
+                            onChange={handleMemberChange}
+                            renderValue={(selected) => (
+                                <div>
+                                    {selected.map((value) => (
+                                        <Chip key={value} label={users.find(user => user._id === value)?.name || value} />
+                                    ))}
+                                </div>
+                            )}
+                        >
+                            {users.map((user) => (
+                                <MenuItem key={user._id} value={user._id}>
+                                    {user.name}
+                                </MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleClose} color="primary">
+                        Cancel
+                    </Button>
+                    <Button onClick={handleCreateGroup} color="primary">
+                        Create
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            <Dialog open={editOpen} onClose={handleClose} fullWidth maxWidth="sm">
+                <DialogTitle>Edit Group</DialogTitle>
+                <DialogContent>
+                    <TextField
+                        label="Group Name"
+                        name="name"
+                        value={editingGroup?.name || ''}
+                        onChange={(e) => setEditingGroup({ ...editingGroup, name: e.target.value })}
+                        fullWidth
+                        margin="normal"
+                    />
+                    <FormControl fullWidth margin="normal">
+                        <InputLabel id="edit-members-label">Members</InputLabel>
+                        <Select
+                            labelId="edit-members-label"
+                            id="edit-members"
+                            multiple
+                            value={editingGroup?.members || []}
+                            label="Members"
+                            onChange={(e) => setEditingGroup({ ...editingGroup, members: e.target.value })}
+                            renderValue={(selected) => (
+                                <div>
+                                    {selected.map((value) => (
+                                        <Chip key={value} label={users.find(user => user._id === value)?.name || value} />
+                                    ))}
+                                </div>
+                            )}
+                        >
+                            {users.map((user) => (
+                                <MenuItem key={user._id} value={user._id}>
+                                    {user.name}
+                                </MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleClose} color="primary">
+                        Cancel
+                    </Button>
+                    <Button onClick={() => handleUpdateGroup(editingGroup?._id)} color="primary">
+                        Update
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </div>
     );
 }

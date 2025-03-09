@@ -45,7 +45,8 @@ function Login() {
                 const jwtToken = response.data.token;
                 const oneHourFromNow = new Date(new Date().getTime() + 60 * 60 * 1000);
                 Cookies.set('jwt', jwtToken, { expires: oneHourFromNow, path: '/' });
-                navigate('/tasks');
+                //navigate('/tasks');
+                window.location.reload();
             } else {
                 toast.error('Login failed!');
             }

@@ -16,7 +16,8 @@ function Navbar() {
         try {
             await axios.get(`${config.apiUrl}/api/users/logout`, { withCredentials: true });
             Cookies.remove('jwt'); // Remove the cookie
-            navigate('/');
+            //navigate('/');
+            window.location.reload();
         } catch (error) {
             console.error('Logout failed:', error);
             // Optionally, display an error message to the user
@@ -36,6 +37,9 @@ function Navbar() {
                 </Button>
                 <Button color="inherit" component={Link} to="/groups">
                     Groups
+                </Button>
+                <Button color="inherit" component={Link} to="/users">
+                    Users
                 </Button>
                 <Button color="inherit" onClick={handleLogout}>
                     Logout

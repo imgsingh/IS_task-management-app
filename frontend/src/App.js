@@ -16,6 +16,8 @@ import './App.css';
 import Cookies from 'js-cookie';
 import axios from 'axios';
 import ForgotPassword from './components/ForgotPassword';
+import Task from './components/Task';
+import Users from './components/Users';
 
 const theme = createTheme();
 
@@ -66,11 +68,15 @@ function App() {
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route
                 path="/tasks"
-                element={isAuthenticated ? <Tasks /> : <Navigate to="/login" />}
+                element={isAuthenticated ? <Task /> : <Navigate to="/login" />}
               />
               <Route
                 path="/groups"
                 element={isAuthenticated ? <Groups /> : <Navigate to="/login" />}
+              />
+              <Route
+                path="/users"
+                element={isAuthenticated ? <Users /> : <Navigate to="/users" />}
               />
             </Routes>
           </Container>
