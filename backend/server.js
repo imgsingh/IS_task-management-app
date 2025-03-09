@@ -15,16 +15,14 @@ const PORT = process.env.PORT || 5000;
 //     origin: 'http://localhost:3001', //Development
 //     credentials: true,
 // }));
-
 app.use(cors({
-    origin: 'https://is-task-management-app-frontend.vercel.app', //production
+    origin: 'https://is-task-management-app-frontend.vercel.app', // Production origin
     credentials: true,
 }));
 app.use(express.json());
 app.use(cookieParser());
 
 const crypto = require('crypto');
-
 
 
 // Connect to MongoDB
@@ -184,12 +182,12 @@ app.post('/api/users/login', async (req, res) => {
         if (!isMatch) {
             return res.status(400).json({ message: 'Invalid username or password' });
         }
-        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET);
+        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
         res.cookie('jwt', token, {
             httpOnly: true,
-            secure: true,
-            sameSite: 'none',
-            maxAge: 3600000
+            secure: true,    // Required for HTTPS
+            sameSite: 'none',  // Required for cross-site cookies with secure: true
+            maxAge: 3600000  // 1 hour
         });
         res.json({ token, userId: user._id });
     } catch (error) {
@@ -238,19 +236,12 @@ app.get('/api/users/logout', (req, res) => {
 // Authentication Middleware
 const authMiddleware = (req, res, next) => {
     try {
-        const cookieHeader = req.headers.cookie;
-        const cookies = cookieHeader.split('; ');
-        let token = null;
-        for (const cookie of cookies) {
-            const [name, value] = cookie.split('=');
-            if (name === 'jwt') {
-                token = value;
-                break;
-            }
-        }
+        const token = req.cookies.jwt; // Access token from cookies
+
         if (!token) {
             return res.status(401).json({ message: 'Unauthorized' });
         }
+
         const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
         req.userId = decodedToken.userId;
         next();
