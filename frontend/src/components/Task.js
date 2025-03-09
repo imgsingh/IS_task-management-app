@@ -18,7 +18,6 @@ import {
     Select,
     MenuItem,
 } from '@mui/material';
-import { Editor } from '@tinymce/tinymce-react';
 import { toast } from 'react-toastify';
 import Navbar from './Navbar';
 
@@ -27,7 +26,7 @@ const style = {
     top: '50%',
     left: '50%',
     transform: 'translate(-50%, -50%)',
-    width: 400,
+    width: 600,
     bgcolor: 'background.paper',
     border: '2px solid #000',
     boxShadow: 24,
@@ -42,15 +41,20 @@ function Task() {
         description: '',
         link: '',
         tags: '',
+        group: '',
+        status: 1,
+        completed: false,
         visibility: 'private',
     });
     const [editingTask, setEditingTask] = useState(null);
     const [groups, setGroups] = useState([]);
 
     useEffect(() => {
-        fetchTasks();
         fetchGroups();
-    },);
+        //fetchTasks();
+    }, []);
+
+    useEffect(() => { fetchTasks() }, [groups]);
 
     const fetchGroups = async () => {
         try {
@@ -79,6 +83,9 @@ function Task() {
             description: '',
             link: '',
             tags: '',
+            group: '',
+            status: 1,
+            completed: false,
             visibility: 'private',
         });
     };
@@ -95,6 +102,10 @@ function Task() {
         event.preventDefault();
         if (!taskData.group) {
             toast.error('Please select a group.');
+            return;
+        }
+        if (taskData.link && !isValidUrl(taskData.link)) {
+            toast.error('Please enter a valid Resource Link');
             return;
         }
         try {
@@ -120,6 +131,9 @@ function Task() {
             description: task.description,
             link: task.link,
             tags: task.tags,
+            group: task.group,
+            status: task.status,
+            completed: task.completed,
             visibility: task.visibility,
         });
         handleOpen();
@@ -144,6 +158,15 @@ function Task() {
             console.error('Error toggling task completion:', error);
         }
     };
+
+    function isValidUrl(url) {
+        try {
+            new URL(url);
+            return true;
+        } catch (error) {
+            return false;
+        }
+    }
 
     return (
         <>
@@ -204,72 +227,112 @@ function Task() {
                         <Typography variant="h6" component="div" gutterBottom>
                             {editingTask ? 'Edit Task' : 'Create Task'}
                         </Typography>
+
                         <form onSubmit={handleSubmit}>
-                            <TextField
-                                label="Title"
-                                name="title"
-                                fullWidth
-                                margin="normal"
-                                value={taskData.title}
-                                onChange={handleChange}
-                            />
-                            <TextField
-                                label="Description"
-                                name="description"
-                                fullWidth
-                                margin="normal"
-                                value={taskData.description}
-                                onChange={handleChange}
-                            />
-                            <TextField
-                                label="Resource Link"
-                                name="link"
-                                fullWidth
-                                margin="normal"
-                                value={taskData.link}
-                                onChange={handleChange}
-                            />
-                            <TextField
-                                label="Tags"
-                                name="tags"
-                                fullWidth
-                                margin="normal"
-                                value={taskData.tags}
-                                onChange={handleChange}
-                            />
-                            <FormControl fullWidth margin="normal">
-                                <InputLabel id="group-label">Group</InputLabel>
-                                <Select
-                                    labelId="group-label"
-                                    id="group"
-                                    name="group"
-                                    value={taskData.group || ''} // Set initial value to empty string if no group is selected
-                                    label="Group"
-                                    onChange={handleChange}
-                                >
-                                    {/* Fetch and display available groups */}
-                                    {groups.map((group) => (
-                                        <MenuItem key={group._id} value={group._id}>
-                                            {group.name}
-                                        </MenuItem>
-                                    ))}
-                                </Select>
-                            </FormControl>
-                            <FormControl fullWidth margin="normal">
-                                <InputLabel id="visibility-label">Visibility</InputLabel>
-                                <Select
-                                    labelId="visibility-label"
-                                    id="visibility"
-                                    name="visibility"
-                                    value={taskData.visibility}
-                                    label="Visibility"
-                                    onChange={handleChange}
-                                >
-                                    <MenuItem value="private">Private</MenuItem>
-                                    <MenuItem value="group">Group</MenuItem>
-                                    <MenuItem value="public">Public</MenuItem>
-                                </Select>
-                            </FormControl>
+                            <Grid container spacing={2}>
+                                <Grid item xs={12} md={6}> {/* First column (Title, Description) */}
+                                    <TextField
+                                        label="Title"
+                                        name="title"
+                                        fullWidth
+                                        margin="normal"
+                                        value={taskData.title}
+                                        onChange={handleChange}
+                                    />
+                                    <TextField
+                                        label="Description"
+                                        name="description"
+                                        fullWidth
+                                        margin="normal"
+                                        value={taskData.description}
+                                        onChange={handleChange}
+                                        multiline
+                                        rows={11}
+                                    />
+                                </Grid>
+                                <Grid item xs={12} md={6}> {/* Second column (Link, Tags, Group, Visibility) */}
+                                    <TextField
+                                        label="Resource Link"
+                                        name="link"
+                                        fullWidth
+                                        margin="normal"
+                                        value={taskData.link || 'https://'}
+                                        onChange={handleChange}
+                                        pattern="https://.*"
+                                    />
+                                    <TextField
+                                        label="Tags"
+                                        name="tags"
+                                        fullWidth
+                                        margin="normal"
+                                        value={taskData.tags}
+                                        onChange={handleChange}
+                                    />
+                                    <FormControl fullWidth margin="normal">
+                                        <InputLabel id="status-label">Status</InputLabel>
+                                        <Select
+                                            labelId="status-label"
+                                            id="status"
+                                            name="status"
+                                            value={taskData.status || 1}
+                                            label="Status"
+                                            onChange={handleChange}
+                                        >
+                                            <MenuItem value={1}>
+                                                Requirement Gathering
+                                            </MenuItem>
+                                            <MenuItem value={2}>
+                                                In Dev
+                                            </MenuItem>
+                                            <MenuItem value={3}>
+                                                Dev Completed
+                                            </MenuItem>
+                                            <MenuItem value={4}>
+                                                In Testing
+                                            </MenuItem>
+                                            <MenuItem value={5}>
+                                                Testing Done
+                                            </MenuItem>
+                                            <MenuItem value={6}>
+                                                Done
+                                            </MenuItem>
+                                        </Select>
+                                    </FormControl>
+                                    <FormControl fullWidth margin="normal">
+                                        <InputLabel id="group-label">Group</InputLabel>
+                                        <Select
+                                            labelId="group-label"
+                                            id="group"
+                                            name="group"
+                                            value={taskData.group || ''}
+                                            label="Group"
+                                            onChange={handleChange}
+                                        >
+                                            {groups.map((group) => (
+                                                <MenuItem key={group._id} value={group._id}>
+                                                    {group.name}
+                                                </MenuItem>
+                                            ))}
+                                        </Select>
+                                    </FormControl>
+                                    <FormControl fullWidth margin="normal">
+                                        <InputLabel id="visibility-label">Visibility</InputLabel>
+                                        <Select
+                                            labelId="visibility-label"
+                                            id="visibility"
+                                            name="visibility"
+                                            value={taskData.visibility}
+                                            label="Visibility"
+                                            onChange={handleChange}
+                                        >
+                                            <MenuItem value="private">Private</MenuItem>
+                                            <MenuItem value="group">Group</MenuItem>
+                                            <MenuItem value="public">Public</MenuItem>
+                                        </Select>
+                                    </FormControl>
+                                </Grid>
+                            </Grid>
+
                             <Button type="submit" variant="contained" color="primary">
                                 {editingTask ? 'Update Task' : 'Create Task'}
                             </Button>

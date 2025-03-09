@@ -23,6 +23,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Navbar from './Navbar';
 import config from '../config';
+import { toast } from 'react-toastify';
 
 function Groups() {
     const [groups, setGroups] = useState([]);
@@ -84,7 +85,9 @@ function Groups() {
             await axios.put(`${config.apiUrl}/api/groups/${groupId}`, editingGroup, { withCredentials: true });
             setEditingGroup(null);
             setEditOpen(false);
+            fetchGroups();
         } catch (error) {
+            toast.error(`Error updating group: Groups can only be deleted by owner!`)
             console.error('Error updating group:', error);
         }
     };
@@ -94,6 +97,7 @@ function Groups() {
             await axios.delete(`${config.apiUrl}/api/groups/${groupId}`, { withCredentials: true });
             fetchGroups();
         } catch (error) {
+            toast.error(`Error deleting group: Groups can only be deleted by owner!`)
             console.error('Error deleting group:', error);
         }
     };
@@ -229,6 +233,25 @@ function Groups() {
                             ))}
                         </Select>
                     </FormControl>
+                    {editingGroup?.owner &&
+                        <FormControl fullWidth margin="normal">
+                            <InputLabel id="edit-owner-label">Transfer ownership</InputLabel>
+                            <Select
+                                labelId="owner-label"
+                                id="owner"
+                                name="transfer_ownership"
+                                value={editingGroup?.owner}
+                                label="Transfer Ownership"
+                                onChange={(e) => setEditingGroup({ ...editingGroup, owner: e.target.value })}
+                            >
+                                {users.map((user) => (
+                                    <MenuItem key={user._id} value={user._id}>
+                                        {user.name}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+                    }
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={handleClose} color="primary">

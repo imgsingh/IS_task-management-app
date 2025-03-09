@@ -44,6 +44,7 @@ const taskSchema = new mongoose.Schema({
     tags: [{ type: String }],
     visibility: { type: String, enum: ['private', 'group', 'public'], default: 'private' },
     completed: { type: Boolean, default: false },
+    status: { type: Number, default: 1 },
     group: { type: mongoose.Schema.Types.ObjectId, ref: 'Group' },
     owner: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
 });
@@ -289,9 +290,29 @@ app.get('/api/users', authMiddleware, async (req, res) => {
 });
 
 // Task Management Routes
+// app.get('/api/tasks', authMiddleware, async (req, res) => {
+//     try {
+//         const tasks = await Task.find({ owner: req.userId });
+//         res.json(tasks);
+//     } catch (error) {
+//         console.error('Error fetching tasks:', error);
+//         res.status(500).json({ message: 'Failed to fetch tasks' });
+//     }
+// });
+
 app.get('/api/tasks', authMiddleware, async (req, res) => {
     try {
-        const tasks = await Task.find({ owner: req.userId });
+        const userId = req.userId;
+
+        let tasks;
+        tasks = await Task.find({
+            $or: [
+                { owner: userId }, // User's own tasks
+                { visibility: 'public' }, // All public tasks
+                { visibility: 'group', group: { $in: await Group.find({ members: userId }).distinct('_id') } }, // Group tasks where the user is a member
+            ],
+        });
+
         res.json(tasks);
     } catch (error) {
         console.error('Error fetching tasks:', error);
@@ -327,10 +348,11 @@ app.post('/api/tasks', authMiddleware, async (req, res) => {
 
 app.put('/api/tasks/:id', authMiddleware, async (req, res) => {
     try {
-        const { title, description, link, tags, visibility, completed, group } = req.body;
+        const { title, description, link, tags, visibility, completed, status, group } = req.body;
+
         const updatedTask = await Task.findOneAndUpdate(
-            { _id: req.params.id, owner: req.userId },
-            { title, description, link, tags, visibility, completed, group },
+            { _id: req.params.id },
+            { title, description, link, tags, visibility, completed, status, group },
             { new: true }
         );
         if (!updatedTask) {
@@ -370,8 +392,8 @@ app.get('/api/groups', authMiddleware, async (req, res) => {
 
 app.post('/api/groups', authMiddleware, async (req, res) => {
     try {
-        const { name } = req.body;
-        const newGroup = new Group({ name, owner: req.userId, members: [req.userId] });
+        const { name, members } = req.body;
+        const newGroup = new Group({ name, owner: req.userId, members: members });
         const savedGroup = await newGroup.save();
         res.status(201).json(savedGroup);
     } catch (error) {
@@ -383,7 +405,7 @@ app.post('/api/groups', authMiddleware, async (req, res) => {
 app.put('/api/groups/:id', authMiddleware, async (req, res) => {
     try {
         const groupId = req.params.id;
-        const { name, members } = req.body;
+        const { name, members, owner } = req.body;
 
         // Find the group and check if the user is the owner
         const group = await Group.findById(groupId);
@@ -397,6 +419,7 @@ app.put('/api/groups/:id', authMiddleware, async (req, res) => {
         // Update the group
         group.name = name;
         group.members = members;
+        group.owner = owner;
         const updatedGroup = await group.save();
 
         res.json(updatedGroup);

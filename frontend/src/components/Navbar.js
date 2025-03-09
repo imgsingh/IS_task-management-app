@@ -27,23 +27,23 @@ function Navbar() {
     return (
         <AppBar position="static">
             <Toolbar>
-                <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-                    <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}>
-                        Task Management App
-                    </Link>
-                </Typography>
-                <Button color="inherit" component={Link} to="/tasks">
-                    Tasks
-                </Button>
-                <Button color="inherit" component={Link} to="/groups">
-                    Groups
-                </Button>
-                <Button color="inherit" component={Link} to="/users">
-                    Users
-                </Button>
-                <Button color="inherit" onClick={handleLogout}>
-                    Logout
-                </Button>
+                <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}>
+                    Web Support
+                </Link>
+                <div style={{ marginLeft: 'auto' }}>
+                    <Button color="inherit" component={Link} to="/tasks">
+                        Tasks
+                    </Button>
+                    <Button color="inherit" component={Link} to="/groups">
+                        Groups
+                    </Button>
+                    <Button color="inherit" component={Link} to="/users">
+                        Users
+                    </Button>
+                    <Button color="inherit" onClick={handleLogout}>
+                        Logout
+                    </Button>
+                </div>
             </Toolbar>
         </AppBar>
     );
