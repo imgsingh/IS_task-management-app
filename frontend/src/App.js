@@ -30,9 +30,9 @@ function App() {
         const jwtToken = Cookies.get('jwt');
         const response = await axios.get(`${config.apiUrl}/api/users/verify`,
           {
-            headers: {
-              Cookie: `jwt=${jwtToken}`,
-            },
+            // headers: {
+            //   Cookie: `jwt=${jwtToken}`,
+            // },
             withCredentials: true
           }
         );

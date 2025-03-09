@@ -10,7 +10,7 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Middleware
+//Middleware
 // app.use(cors({
 //     origin: 'http://localhost:3001', //Development
 //     credentials: true,
@@ -185,7 +185,12 @@ app.post('/api/users/login', async (req, res) => {
             return res.status(400).json({ message: 'Invalid username or password' });
         }
         const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET);
-        res.cookie('jwt', token, { httpOnly: true, maxAge: 3600000 });
+        res.cookie('jwt', token, {
+            httpOnly: true,
+            secure: true,
+            sameSite: 'none',
+            maxAge: 3600000
+        });
         res.json({ token, userId: user._id });
     } catch (error) {
         console.error('Error logging in user:', error);
