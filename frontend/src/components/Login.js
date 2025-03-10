@@ -51,7 +51,7 @@ function Login() {
                   secure: true,
                   sameSite: 'none',
                   domain: 'is-task-management-app-frontend.vercel.app',
-                  httpOnly=false
+                  httpOnly: false
                 });
 
                 //navigate('/tasks');
