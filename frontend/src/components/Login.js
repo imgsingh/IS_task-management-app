@@ -24,6 +24,7 @@ import { toast } from 'react-toastify';
 const theme = createTheme();
 
 function Login() {
+    const navigate = useNavigate();
     const [formData, setFormData] = useState({
         username: '',
         password: '',
@@ -38,7 +39,6 @@ function Login() {
 
     const handleSubmit = async (event) => {
         event.preventDefault();
-        const navigate = useNavigate();
         try {
             const response = await axios.post(`${config.apiUrl}/api/users/login`, formData);
             if (response.data.token) {
