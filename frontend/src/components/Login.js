@@ -50,6 +50,7 @@ function Login() {
                     path: '/',
                     secure: true,
                     sameSite: 'none',
+                    domain: 'is-task-management-app.vercel.app',
                     httpOnly: false
                 });
 
