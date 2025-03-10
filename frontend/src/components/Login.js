@@ -48,9 +48,10 @@ function Login() {
                 Cookies.set('jwt', jwtToken, {
                   expires: oneHourFromNow,
                   path: '/',
-                  secure: true, // Add the secure attribute
-                  sameSite: 'none', // Ensure sameSite is set to 'none' if needed
-                  domain: 'is-task-management-app-frontend.vercel.app' //add the domain.
+                  secure: true,
+                  sameSite: 'none',
+                  domain: 'is-task-management-app-frontend.vercel.app',
+                  httpOnly=false
                 });
 
                 //navigate('/tasks');
