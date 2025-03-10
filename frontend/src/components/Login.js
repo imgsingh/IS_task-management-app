@@ -44,7 +44,15 @@ function Login() {
             if (response.data.token) {
                 const jwtToken = response.data.token;
                 const oneHourFromNow = new Date(new Date().getTime() + 60 * 60 * 1000);
-                Cookies.set('jwt', jwtToken, { expires: oneHourFromNow, path: '/' });
+                //Cookies.set('jwt', jwtToken, { expires: oneHourFromNow, path: '/' });
+                Cookies.set('jwt', jwtToken, {
+                  expires: oneHourFromNow,
+                  path: '/',
+                  secure: true, // Add the secure attribute
+                  sameSite: 'none', // Ensure sameSite is set to 'none' if needed
+                  domain: 'is-task-management-app-frontend.vercel.app' //add the domain.
+                });
+
                 //navigate('/tasks');
                 window.location.reload();
             } else {
