@@ -46,16 +46,15 @@ function Login() {
                 const oneHourFromNow = new Date(new Date().getTime() + 60 * 60 * 1000);
                 //Cookies.set('jwt', jwtToken, { expires: oneHourFromNow, path: '/' });
                 Cookies.set('jwt', jwtToken, {
-                  expires: oneHourFromNow,
-                  path: '/',
-                  secure: true,
-                  sameSite: 'none',
-                  domain: 'is-task-management-app-frontend.vercel.app',
-                  httpOnly: false
+                    expires: oneHourFromNow,
+                    path: '/',
+                    secure: true,
+                    sameSite: 'none',
+                    httpOnly: false
                 });
 
-                navigate('/tasks');
-                //window.location.reload();
+                //navigate('/tasks');
+                window.location.reload();
             } else {
                 toast.error('Login failed!');
             }

@@ -27,17 +27,14 @@ function App() {
   useEffect(() => {
     const verifyToken = async () => {
       try {
-        const jwtToken = Cookies.get('jwt');
-        const response = await axios.get(`${config.apiUrl}/api/users/verify`,
-          {
-            // headers: {
-            //   Cookie: `jwt=${jwtToken}`,
-            // },
-            withCredentials: true
-          }
-        );
+        const response = await axios.get(`${config.apiUrl}/api/users/verify`, {
+          withCredentials: true,
+        });
+
         if (response.data.message === 'JWT is valid') {
           setIsAuthenticated(true);
+        } else {
+          setIsAuthenticated(false); // Make sure to set to false if the token is invalid
         }
       } catch (error) {
         console.error('Error verifying token:', error);
@@ -46,14 +43,13 @@ function App() {
     };
 
     verifyToken();
-  },);
+  }, []);
 
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Router>
         <div className="App">
-          {/* <Navbar /> */}
           <Container>
             <Routes>
               <Route
