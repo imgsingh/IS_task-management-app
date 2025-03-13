@@ -15,7 +15,7 @@ function Navbar() {
     const handleLogout = async () => {
         try {
             await axios.get(`${config.apiUrl}/api/users/logout`);
-            window.location.reload();
+            //window.location.reload();
         } catch (error) {
             console.error('Logout failed:', error);
             // Optionally, display an error message to the user
