@@ -12,10 +12,15 @@ function Navbar() {
 
     const navigate = useNavigate();
 
+    const removeCookie = () => {
+        document.cookie = "jwt=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=is-task-management-app.vercel.app";
+        window.location.reload();
+    };
+
     const handleLogout = async () => {
         try {
-            await axios.get(`${config.apiUrl}/api/users/logout`);
-            //window.location.reload();
+            // await axios.get(`${config.apiUrl}/api/users/logout`);
+            removeCookie();
         } catch (error) {
             console.error('Logout failed:', error);
             // Optionally, display an error message to the user
