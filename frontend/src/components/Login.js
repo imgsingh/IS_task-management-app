@@ -50,14 +50,6 @@ function Login() {
                     path: '/',
                     secure: true,
                     sameSite: 'none',
-                    domain: 'is-task-management-app.vercel.app',
-                    httpOnly: false
-                });
-                Cookies.set('jwt', jwtToken, {
-                    expires: oneHourFromNow,
-                    path: '/',
-                    secure: true,
-                    sameSite: 'none',
                     domain: 'vercel.app',
                     httpOnly: false
                 });
