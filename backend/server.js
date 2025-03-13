@@ -11,14 +11,14 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 //Middleware
-// app.use(cors({
-//     origin: 'http://localhost:3001', //Development
-//     credentials: true,
-// }));
 app.use(cors({
-    origin: 'https://is-task-management-app-frontend.vercel.app', // Production origin
+    origin: 'http://localhost:3000', //Development
     credentials: true,
 }));
+// app.use(cors({
+//     origin: 'https://is-task-management-app-frontend.vercel.app', // Production origin
+//     credentials: true,
+// }));
 app.use(express.json());
 app.use(cookieParser());
 
@@ -184,10 +184,10 @@ app.post('/api/users/login', async (req, res) => {
         }
         const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
         res.cookie('jwt', token, {
-            httpOnly: true,
-            secure: true,    // Required for HTTPS
-            sameSite: 'none',  // Required for cross-site cookies with secure: true
-            maxAge: 3600000  // 1 hour
+            httpOnly: false,
+            secure: true,
+            sameSite: 'none',
+            maxAge: 3600000
         });
         res.json({ token, userId: user._id });
     } catch (error) {
@@ -198,14 +198,14 @@ app.post('/api/users/login', async (req, res) => {
 
 app.get('/api/users/verify', (req, res) => {
     try {
-        console.log('Cookies:', req);
+        //console.log('Cookies:', req);
         const token = req.cookies.jwt;
-        console.log('Token:', token);
+        //console.log('Token:', token);
         if (!token) {
             return res.status(401).json({ message: 'Unauthorized' });
         }
         const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
-        console.log("Decoded Token", decodedToken);
+        //console.log("Decoded Token", decodedToken);
         User.findById(decodedToken.userId)
             .then(user => {
                 if (!user) {

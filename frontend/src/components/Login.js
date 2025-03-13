@@ -42,19 +42,6 @@ function Login() {
         try {
             const response = await axios.post(`${config.apiUrl}/api/users/login`, formData);
             if (response.data.token) {
-                const jwtToken = response.data.token;
-                const oneHourFromNow = new Date(new Date().getTime() + 60 * 60 * 1000);
-                //Cookies.set('jwt', jwtToken, { expires: oneHourFromNow, path: '/' });
-                Cookies.set('jwt', jwtToken, {
-                    expires: oneHourFromNow,
-                    path: '/',
-                    secure: true,
-                    sameSite: 'none',
-                    domain: 'vercel.app',
-                    httpOnly: false
-                });
-
-                //navigate('/tasks');
                 window.location.reload();
             } else {
                 toast.error('Login failed!');

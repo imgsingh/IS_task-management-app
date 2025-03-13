@@ -5,15 +5,12 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import Container from '@mui/material/Container';
-import Navbar from './components/Navbar';
 import Home from './components/Home';
 import Login from './components/Login';
 import Signup from './components/Signup';
-import Tasks from './components/Tasks';
 import Groups from './components/Groups';
 import config from './config';
 import './App.css';
-import Cookies from 'js-cookie';
 import axios from 'axios';
 import ForgotPassword from './components/ForgotPassword';
 import Task from './components/Task';
@@ -21,20 +18,20 @@ import Users from './components/Users';
 
 const theme = createTheme();
 
+axios.defaults.withCredentials = true;
+
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
     const verifyToken = async () => {
       try {
-        const response = await axios.get(`${config.apiUrl}/api/users/verify`, {
-          withCredentials: true,
-        });
+        const response = await axios.get(`${config.apiUrl}/api/users/verify`);
 
         if (response.data.message === 'JWT is valid') {
           setIsAuthenticated(true);
         } else {
-          setIsAuthenticated(false); // Make sure to set to false if the token is invalid
+          setIsAuthenticated(false);
         }
       } catch (error) {
         console.error('Error verifying token:', error);
