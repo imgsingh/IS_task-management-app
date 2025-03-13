@@ -14,9 +14,7 @@ function Navbar() {
 
     const handleLogout = async () => {
         try {
-            await axios.get(`${config.apiUrl}/api/users/logout`, { withCredentials: true });
-            Cookies.remove('jwt'); // Remove the cookie
-            //navigate('/');
+            await axios.get(`${config.apiUrl}/api/users/logout`);
             window.location.reload();
         } catch (error) {
             console.error('Logout failed:', error);

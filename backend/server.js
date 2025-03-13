@@ -225,7 +225,12 @@ app.get('/api/users/verify', (req, res) => {
 
 app.get('/api/users/logout', (req, res) => {
     try {
-        res.clearCookie('jwt', { httpOnly: true, maxAge: 0 });
+        res.clearCookie('jwt', {
+            httpOnly: false,
+            secure: true,
+            sameSite: 'none',
+            path: '/'
+        });
         res.json({ message: 'Logged out successfully' });
     } catch (error) {
         console.error('Error logging out user:', error);
