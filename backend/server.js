@@ -16,7 +16,7 @@ const PORT = process.env.PORT || 5000;
 //     credentials: true,
 // }));
 app.use(cors({
-    origin: 'https://is-task-management-app-frontend.vercel.app', // Production origin
+    origin: 'https://shitlist.vercel.app', // Production origin
     credentials: true,
 }));
 app.use(express.json());
