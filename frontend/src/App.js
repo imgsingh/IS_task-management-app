@@ -5,6 +5,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import Container from '@mui/material/Container';
+import CircularProgress from '@mui/material/CircularProgress'; // Import CircularProgress
 import Home from './components/Home';
 import Login from './components/Login';
 import Signup from './components/Signup';
@@ -22,6 +23,7 @@ axios.defaults.withCredentials = true;
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true); // Loading state
 
   useEffect(() => {
     const verifyToken = async () => {
@@ -36,11 +38,32 @@ function App() {
       } catch (error) {
         console.error('Error verifying token:', error);
         setIsAuthenticated(false);
+      } finally {
+        setIsLoading(false); // Set loading to false after verification
       }
     };
 
     verifyToken();
   }, []);
+
+  // Show a centered loader while verifying the token
+  if (isLoading) {
+    return (
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <Container
+          sx={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            height: '100vh', // Full viewport height
+          }}
+        >
+          <CircularProgress /> {/* Centered loading spinner */}
+        </Container>
+      </ThemeProvider>
+    );
+  }
 
   return (
     <ThemeProvider theme={theme}>
@@ -69,7 +92,7 @@ function App() {
               />
               <Route
                 path="/users"
-                element={isAuthenticated ? <Users /> : <Navigate to="/users" />}
+                element={isAuthenticated ? <Users /> : <Navigate to="/login" />}
               />
             </Routes>
           </Container>

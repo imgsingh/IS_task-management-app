@@ -11,14 +11,14 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 //Middleware
-// app.use(cors({
-//     origin: 'http://localhost:3000', //Development
-//     credentials: true,
-// }));
 app.use(cors({
-    origin: 'https://is-task-management-app-frontend.vercel.app', // Production origin
+    origin: 'http://localhost:3000', //Development
     credentials: true,
 }));
+// app.use(cors({
+//     origin: 'https://is-task-management-app-frontend.vercel.app', // Production origin
+//     credentials: true,
+// }));
 app.use(express.json());
 app.use(cookieParser());
 
@@ -46,7 +46,7 @@ const taskSchema = new mongoose.Schema({
     title: { type: String, required: true },
     description: { type: String },
     link: { type: String },
-    tags: [{ type: String }],
+    tags: { type: String },
     visibility: { type: String, enum: ['private', 'group', 'public'], default: 'private' },
     completed: { type: Boolean, default: false },
     status: { type: Number, default: 1 },

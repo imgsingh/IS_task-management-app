@@ -31,7 +31,7 @@ function Navbar() {
         <AppBar position="static">
             <Toolbar>
                 <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}>
-                    Web Support
+                    Sh!tList
                 </Link>
                 <div style={{ marginLeft: 'auto' }}>
                     <Button color="inherit" component={Link} to="/tasks">

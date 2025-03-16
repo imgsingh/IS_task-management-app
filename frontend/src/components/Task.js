@@ -17,6 +17,7 @@ import {
     InputLabel,
     Select,
     MenuItem,
+    Chip,
 } from '@mui/material';
 import { toast } from 'react-toastify';
 import Navbar from './Navbar';
@@ -31,6 +32,16 @@ const style = {
     border: '2px solid #000',
     boxShadow: 24,
     p: 4,
+};
+
+// Mapping of status values to column names
+const statusColumns = {
+    1: 'Requirement Gathering',
+    2: 'In Dev',
+    3: 'Dev Completed',
+    4: 'In Testing',
+    5: 'Testing Done',
+    6: 'Done',
 };
 
 function Task() {
@@ -51,10 +62,11 @@ function Task() {
 
     useEffect(() => {
         fetchGroups();
-        //fetchTasks();
     }, []);
 
-    useEffect(() => { fetchTasks() }, [groups]);
+    useEffect(() => {
+        fetchTasks();
+    }, [groups]);
 
     const fetchGroups = async () => {
         try {
@@ -92,10 +104,6 @@ function Task() {
 
     const handleChange = (event) => {
         setTaskData({ ...taskData, [event.target.name]: event.target.value });
-    };
-
-    const handleDescriptionChange = (content, editor) => {
-        setTaskData({ ...taskData, description: content });
     };
 
     const handleSubmit = async (event) => {
@@ -159,6 +167,15 @@ function Task() {
         }
     };
 
+    const handleStatusChange = async (taskId, newStatus) => {
+        try {
+            await axios.put(`${config.apiUrl}/api/tasks/${taskId}`, { status: newStatus }, { withCredentials: true });
+            fetchTasks();
+        } catch (error) {
+            console.error('Error updating task status:', error);
+        }
+    };
+
     function isValidUrl(url) {
         try {
             new URL(url);
@@ -167,6 +184,16 @@ function Task() {
             return false;
         }
     }
+
+    // Group tasks by status
+    const groupedTasks = tasks.reduce((acc, task) => {
+        const status = task.status;
+        if (!acc[status]) {
+            acc[status] = [];
+        }
+        acc[status].push(task);
+        return acc;
+    }, {});
 
     return (
         <>
@@ -178,47 +205,108 @@ function Task() {
                             Tasks
                         </Typography>
                     </Grid>
-                    <Grid item><Button variant="contained" color="primary" onClick={handleOpen}>
-                        Add Task
-                    </Button>
+                    <Grid item>
+                        <Button variant="contained" color="primary" onClick={handleOpen}>
+                            Add Task
+                        </Button>
                     </Grid>
                 </Grid>
                 <Grid container spacing={3} mt={2}>
-                    {tasks.map((task) => (
-                        <Grid item key={task._id} xs={12} sm={6} md={4}>
-                            <Card>
-                                <CardContent>
-                                    <Typography variant="h6" component="div" sx={{ textDecoration: task.completed ? 'line-through' : 'none' }}>
-                                        {task.title}
+                    {Object.entries(statusColumns).map(([status, columnName]) => (
+                        <Grid item key={status} xs={12} sm={4} md={2}>
+                            <Box
+                                sx={{
+                                    border: '1px solid #ccc', // Add a border
+                                    borderRadius: '4px', // Optional: Add rounded corners
+                                    padding: '16px', // Add padding inside the box
+                                    backgroundColor: '#f9f9f9', // Optional: Add a light background color
+                                }}
+                            >
+                                <Box
+                                    sx={{
+                                        border: '1px solid black',
+                                        borderRadius: '4px',
+                                        height: '50px',
+                                        backgroundColor: '#ffffff', // White background
+                                        boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)', // Add a subtle shadow
+                                        textAlign: 'center', // Center-align the heading text
+                                        marginBottom: '16px', // Add space below the heading
+                                    }}
+                                >
+                                    <Typography
+                                        variant="p"
+                                        gutterBottom
+                                        sx={{
+                                            fontWeight: 'bold', // Make the text bold
+                                            color: '#333333', // Darker text color
+                                            textTransform: 'uppercase', // Uppercase text
+                                        }}
+                                    >
+                                        {columnName}
                                     </Typography>
-                                    <Typography variant="body2" sx={{ textDecoration: task.completed ? 'line-through' : 'none' }}>
-                                        {task.description}
-                                    </Typography>
-                                    {task.link && (
-                                        <Typography variant="body2">
-                                            <a href={task.link} target="_blank" rel="noopener noreferrer">
-                                                Resource Link
-                                            </a>
-                                        </Typography>
-                                    )}
-                                    {task.tags && (
-                                        <Typography variant="body2" color="text.secondary">
-                                            Tags: {task.tags}
-                                        </Typography>
-                                    )}
-                                </CardContent>
-                                <CardActions>
-                                    <Button size="small" onClick={() => handleEdit(task)}>
-                                        Edit
-                                    </Button>
-                                    <Button size="small" onClick={() => handleDelete(task._id)}>
-                                        Delete
-                                    </Button>
-                                    <Button size="small" onClick={() => handleToggleComplete(task)}>
-                                        {task.completed ? 'Mark Incomplete' : 'Mark Complete'}
-                                    </Button>
-                                </CardActions>
-                            </Card>
+                                </Box>
+                                {groupedTasks[status]?.map((task) => (
+                                    <Card key={task._id} sx={{ mb: 1 }}>
+                                        <CardContent>
+                                            <Typography variant="p" component="div" sx={{ textDecoration: task.completed ? 'line-through' : 'none' }}>
+                                                {task.title}
+                                            </Typography>
+                                            {task.link && (
+                                                <Typography variant="body2">
+                                                    <a href={task.link} target="_blank" rel="noopener noreferrer">
+                                                        Link
+                                                    </a>
+                                                </Typography>
+                                            )}
+                                            {task.tags && (
+                                                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '8px', mt: 1 }}>
+                                                    {task.tags.split(',').map((tag, index) => (
+                                                        <Chip
+                                                            key={index}
+                                                            label={tag.trim()} // Trim whitespace from tags
+                                                            size="small"
+                                                            sx={{
+                                                                backgroundColor: '#e0e0e0', // Light gray background
+                                                                color: '#333333', // Dark text color
+                                                                borderRadius: '4px', // Rounded corners
+                                                                fontSize: '0.75rem', // Smaller font size
+                                                            }}
+                                                        />
+                                                    ))}
+                                                </Box>
+                                            )}
+                                        </CardContent>
+                                        <CardActions>
+                                            <Button size="small" onClick={() => handleEdit(task)}>
+                                                Edit
+                                            </Button>
+                                            <Button size="small" onClick={() => handleDelete(task._id)}>
+                                                Delete
+                                            </Button>
+                                            <Button size="small" onClick={() => handleToggleComplete(task)}>
+                                                {task.completed ? 'Mark Incomplete' : 'Mark Complete'}
+                                            </Button>
+                                            <FormControl fullWidth margin="normal">
+                                                <InputLabel id="status-label">Status</InputLabel>
+                                                <Select
+                                                    labelId="status-label"
+                                                    id="status"
+                                                    name="status"
+                                                    value={task.status}
+                                                    label="Status"
+                                                    onChange={(e) => handleStatusChange(task._id, e.target.value)}
+                                                >
+                                                    {Object.entries(statusColumns).map(([statusValue, columnName]) => (
+                                                        <MenuItem key={statusValue} value={statusValue}>
+                                                            {columnName}
+                                                        </MenuItem>
+                                                    ))}
+                                                </Select>
+                                            </FormControl>
+                                        </CardActions>
+                                    </Card>
+                                ))}
+                            </Box>
                         </Grid>
                     ))}
                 </Grid>
@@ -227,10 +315,9 @@ function Task() {
                         <Typography variant="h6" component="div" gutterBottom>
                             {editingTask ? 'Edit Task' : 'Create Task'}
                         </Typography>
-
                         <form onSubmit={handleSubmit}>
                             <Grid container spacing={2}>
-                                <Grid item xs={12} md={6}> {/* First column (Title, Description) */}
+                                <Grid item xs={12} md={6}>
                                     <TextField
                                         label="Title"
                                         name="title"
@@ -250,7 +337,7 @@ function Task() {
                                         rows={11}
                                     />
                                 </Grid>
-                                <Grid item xs={12} md={6}> {/* Second column (Link, Tags, Group, Visibility) */}
+                                <Grid item xs={12} md={6}>
                                     <TextField
                                         label="Resource Link"
                                         name="link"
@@ -278,24 +365,11 @@ function Task() {
                                             label="Status"
                                             onChange={handleChange}
                                         >
-                                            <MenuItem value={1}>
-                                                Requirement Gathering
-                                            </MenuItem>
-                                            <MenuItem value={2}>
-                                                In Dev
-                                            </MenuItem>
-                                            <MenuItem value={3}>
-                                                Dev Completed
-                                            </MenuItem>
-                                            <MenuItem value={4}>
-                                                In Testing
-                                            </MenuItem>
-                                            <MenuItem value={5}>
-                                                Testing Done
-                                            </MenuItem>
-                                            <MenuItem value={6}>
-                                                Done
-                                            </MenuItem>
+                                            {Object.entries(statusColumns).map(([statusValue, columnName]) => (
+                                                <MenuItem key={statusValue} value={statusValue}>
+                                                    {columnName}
+                                                </MenuItem>
+                                            ))}
                                         </Select>
                                     </FormControl>
                                     <FormControl fullWidth margin="normal">
@@ -332,14 +406,13 @@ function Task() {
                                     </FormControl>
                                 </Grid>
                             </Grid>
-
                             <Button type="submit" variant="contained" color="primary">
                                 {editingTask ? 'Update Task' : 'Create Task'}
                             </Button>
                         </form>
                     </Box>
                 </Modal>
-            </Container>
+            </Container >
         </>
     );
 }

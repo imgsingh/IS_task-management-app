@@ -20,14 +20,12 @@ function Home() {
             <Navbar />
             <div>
                 <Typography variant="h4" gutterBottom>
-                    Welcome to the Web Support!
+                    Welcome to the Sh!tList
                 </Typography>
                 <Typography variant="body1" paragraph>
-                    This app allows you to collaboratively manage your tasks.
-                    You can create tasks, organize them into groups, and share them with others.
+                    Organize the chaos, one task at a time.
                 </Typography>
-                {/* Add more content or components as needed */}
-                <img src={image} alt="Web Support Logo" style={{ width: '100px', height: 'auto' }} />
+                <img src={image} alt="Sh!tList Logo" style={{ width: '100px', height: 'auto' }} />
 
                 {/* <Typography variant="h6" gutterBottom>
                     Created by:
