@@ -33,7 +33,7 @@ function Users() {
             }
         };
         fetchUsers();
-    },);
+    }, []);
 
     const handleEditUser = (user) => {
         setEditingUser({ ...user });

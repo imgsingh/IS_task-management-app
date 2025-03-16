@@ -52,6 +52,8 @@ const taskSchema = new mongoose.Schema({
     status: { type: Number, default: 1 },
     group: { type: mongoose.Schema.Types.ObjectId, ref: 'Group' },
     owner: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    assigned_by: { type: String },
+    assigned_to: { type: String },
 });
 
 const groupSchema = new mongoose.Schema({
@@ -283,13 +285,14 @@ app.put('/api/users/:id', authMiddleware, async (req, res) => {
 
 app.get('/api/users', authMiddleware, async (req, res) => {
     try {
-        const users = await User.find({}); // Fetch only name and username
+        const users = await User.find({}, { username: 1, name: 1 }); // Fetch only name and username
         res.json(users);
     } catch (error) {
         console.error('Error fetching users:', error);
         res.status(500).json({ message: 'Failed to fetch users' });
     }
 });
+
 
 // Task Management Routes
 // app.get('/api/tasks', authMiddleware, async (req, res) => {
@@ -339,6 +342,8 @@ app.post('/api/tasks', authMiddleware, async (req, res) => {
             visibility,
             group,
             owner: req.userId,
+            assigned_by,
+            assigned_to
         });
         const savedTask = await newTask.save();
         res.status(201).json(savedTask);
@@ -350,11 +355,33 @@ app.post('/api/tasks', authMiddleware, async (req, res) => {
 
 app.put('/api/tasks/:id', authMiddleware, async (req, res) => {
     try {
-        const { title, description, link, tags, visibility, completed, status, group } = req.body;
+        const {
+            title,
+            description,
+            link,
+            tags,
+            visibility,
+            completed,
+            status,
+            group,
+            assigned_by,
+            assigned_to
+        } = req.body;
 
         const updatedTask = await Task.findOneAndUpdate(
             { _id: req.params.id },
-            { title, description, link, tags, visibility, completed, status, group },
+            {
+                title,
+                description,
+                link,
+                tags,
+                visibility,
+                completed,
+                status,
+                group,
+                assigned_by,
+                assigned_to
+            },
             { new: true }
         );
         if (!updatedTask) {

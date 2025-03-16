@@ -2,6 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import config from '../config';
+import DeleteIcon from '@mui/icons-material/Delete';
+import Avatar from '@mui/material/Avatar';
 import {
     Button,
     Typography,
@@ -18,24 +20,28 @@ import {
     Select,
     MenuItem,
     Chip,
+    IconButton,
 } from '@mui/material';
 import { toast } from 'react-toastify';
 import Navbar from './Navbar';
+import StatusDropdown from './StatusDropdown';
 
 const style = {
     position: 'absolute',
     top: '50%',
     left: '50%',
     transform: 'translate(-50%, -50%)',
-    width: 600,
+    //width: 600,
+    height: 550,
     bgcolor: 'background.paper',
     border: '2px solid #000',
     boxShadow: 24,
     p: 4,
+    overflow: 'auto',
 };
 
 // Mapping of status values to column names
-const statusColumns = {
+export const statusColumns = {
     1: 'Requirement Gathering',
     2: 'In Dev',
     3: 'Dev Completed',
@@ -56,9 +62,12 @@ function Task() {
         status: 1,
         completed: false,
         visibility: 'private',
+        assigned_by: undefined,
+        assigned_to: undefined
     });
     const [editingTask, setEditingTask] = useState(null);
     const [groups, setGroups] = useState([]);
+    const [users, setUsers] = useState([]);
 
     useEffect(() => {
         fetchGroups();
@@ -72,6 +81,9 @@ function Task() {
         try {
             const response = await axios.get(`${config.apiUrl}/api/groups`, { withCredentials: true });
             setGroups(response.data);
+
+            const response_users = await axios.get(`${config.apiUrl}/api/users`, { withCredentials: true });
+            setUsers(response_users.data);
         } catch (error) {
             console.error('Error fetching groups:', error);
         }
@@ -99,6 +111,8 @@ function Task() {
             status: 1,
             completed: false,
             visibility: 'private',
+            assigned_by: undefined,
+            assigned_to: undefined,
         });
     };
 
@@ -115,6 +129,21 @@ function Task() {
         if (taskData.link && !isValidUrl(taskData.link)) {
             toast.error('Please enter a valid Resource Link');
             return;
+        }
+        if (taskData.assigned_by === undefined) {
+            toast.error('Assigned by user cannot be blank');
+            return;
+        }
+
+        if (taskData.assigned_to === undefined) {
+            toast.error('Assigned to user cannot be blank');
+            return;
+        }
+
+        if (taskData.status === '6') {
+            setTaskData({ ...taskData, completed: true });
+        } else {
+            setTaskData({ ...taskData, completed: false });
         }
         try {
             if (editingTask) {
@@ -143,6 +172,8 @@ function Task() {
             status: task.status,
             completed: task.completed,
             visibility: task.visibility,
+            assigned_by: task.assigned_by,
+            assigned_to: task.assigned_to,
         });
         handleOpen();
     };
@@ -169,7 +200,13 @@ function Task() {
 
     const handleStatusChange = async (taskId, newStatus) => {
         try {
-            await axios.put(`${config.apiUrl}/api/tasks/${taskId}`, { status: newStatus }, { withCredentials: true });
+            let obj
+            if (newStatus === '6') {
+                obj = { status: newStatus, completed: true }
+            } else {
+                obj = { status: newStatus, completed: false }
+            }
+            await axios.put(`${config.apiUrl}/api/tasks/${taskId}`, obj, { withCredentials: true });
             fetchTasks();
         } catch (error) {
             console.error('Error updating task status:', error);
@@ -195,6 +232,24 @@ function Task() {
         return acc;
     }, {});
 
+    const getInitials = (assignedToId, users) => {
+        if (!assignedToId || !users) return '';
+
+        // Find the user by id
+        const user = users.find((user) => user._id === assignedToId);
+
+        if (!user || !user.name) return '';
+
+        // Extract initials from the user's name
+        const names = user.name.split(' ');
+        return names.map((n) => n[0]).join('').toUpperCase();
+    };
+
+    const getRandomColor = () => {
+        const colors = ['#1976d2', '#d32f2f', '#388e3c', '#f57c00', '#7b1fa2'];
+        return colors[Math.floor(Math.random() * colors.length)];
+    };
+
     return (
         <>
             <Navbar />
@@ -202,7 +257,7 @@ function Task() {
                 <Grid container justifyContent="space-between" alignItems="center">
                     <Grid item>
                         <Typography variant="h4" gutterBottom>
-                            Tasks
+                            Task Board
                         </Typography>
                     </Grid>
                     <Grid item>
@@ -218,7 +273,7 @@ function Task() {
                                 sx={{
                                     border: '1px solid #ccc', // Add a border
                                     borderRadius: '4px', // Optional: Add rounded corners
-                                    padding: '16px', // Add padding inside the box
+                                    padding: '5px', // Add padding inside the box
                                     backgroundColor: '#f9f9f9', // Optional: Add a light background color
                                 }}
                             >
@@ -246,18 +301,27 @@ function Task() {
                                     </Typography>
                                 </Box>
                                 {groupedTasks[status]?.map((task) => (
-                                    <Card key={task._id} sx={{ mb: 1 }}>
-                                        <CardContent>
+                                    <Card
+                                        key={task._id}
+                                        sx={{ mb: 1, cursor: 'pointer' }} // Add cursor pointer to indicate clickability
+                                        onClick={() => handleEdit(task)} // Make the entire card clickable for editing
+                                    >
+                                        <CardContent sx={{ padding: '5px', justifyItems: 'left' }}>
                                             <Typography variant="p" component="div" sx={{ textDecoration: task.completed ? 'line-through' : 'none' }}>
-                                                {task.title}
-                                            </Typography>
-                                            {task.link && (
-                                                <Typography variant="body2">
-                                                    <a href={task.link} target="_blank" rel="noopener noreferrer">
-                                                        Link
+                                                {task.link ? (
+                                                    <a
+                                                        href={task.link}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        style={{ textDecoration: 'underline', color: 'inherit' }} // Add underline
+                                                        onClick={(e) => e.stopPropagation()}
+                                                    >
+                                                        {task.title}
                                                     </a>
-                                                </Typography>
-                                            )}
+                                                ) : (
+                                                    task.title
+                                                )}
+                                            </Typography>
                                             {task.tags && (
                                                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '8px', mt: 1 }}>
                                                     {task.tags.split(',').map((tag, index) => (
@@ -277,32 +341,32 @@ function Task() {
                                             )}
                                         </CardContent>
                                         <CardActions>
-                                            <Button size="small" onClick={() => handleEdit(task)}>
-                                                Edit
-                                            </Button>
-                                            <Button size="small" onClick={() => handleDelete(task._id)}>
-                                                Delete
-                                            </Button>
-                                            <Button size="small" onClick={() => handleToggleComplete(task)}>
-                                                {task.completed ? 'Mark Incomplete' : 'Mark Complete'}
-                                            </Button>
-                                            <FormControl fullWidth margin="normal">
-                                                <InputLabel id="status-label">Status</InputLabel>
-                                                <Select
-                                                    labelId="status-label"
-                                                    id="status"
-                                                    name="status"
-                                                    value={task.status}
-                                                    label="Status"
-                                                    onChange={(e) => handleStatusChange(task._id, e.target.value)}
-                                                >
-                                                    {Object.entries(statusColumns).map(([statusValue, columnName]) => (
-                                                        <MenuItem key={statusValue} value={statusValue}>
-                                                            {columnName}
-                                                        </MenuItem>
-                                                    ))}
-                                                </Select>
-                                            </FormControl>
+                                            {/* Delete icon and status dropdown */}
+                                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, width: '100%' }}>
+                                                {/* Delete icon and initials */}
+                                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                    {/* Delete icon */}
+                                                    <IconButton size="small" onClick={(e) => { e.stopPropagation(); handleDelete(task._id); }}>
+                                                        <DeleteIcon fontSize="small" />
+                                                    </IconButton>
+
+                                                    {/* Initials in a circle */}
+                                                    {task.assigned_to && (
+                                                        <Avatar
+                                                            sx={{
+                                                                width: 32,
+                                                                height: 32,
+                                                                bgcolor: getRandomColor()
+                                                            }}
+                                                        >
+                                                            {getInitials(task.assigned_to, users)}
+                                                        </Avatar>
+                                                    )}
+                                                </Box>
+
+                                                {/* Status dropdown */}
+                                                <StatusDropdown task={task} handleStatusChange={handleStatusChange} />
+                                            </Box>
                                         </CardActions>
                                     </Card>
                                 ))}
@@ -335,7 +399,25 @@ function Task() {
                                         onChange={handleChange}
                                         multiline
                                         rows={11}
+                                        sx={{ marginBottom: '19px' }}
                                     />
+                                    <FormControl fullWidth margin="normal">
+                                        <InputLabel id="assigned-by-label">Assigned By</InputLabel>
+                                        <Select
+                                            labelId="assigned-by-label"
+                                            id="assigned_by"
+                                            name="assigned_by"
+                                            value={taskData.assigned_by}
+                                            label="Assigned by"
+                                            onChange={handleChange}
+                                        >
+                                            {users.map((item) => (
+                                                <MenuItem key={item._id} value={item._id}>
+                                                    {item.name}
+                                                </MenuItem>
+                                            ))}
+                                        </Select>
+                                    </FormControl>
                                 </Grid>
                                 <Grid item xs={12} md={6}>
                                     <TextField
@@ -402,6 +484,23 @@ function Task() {
                                             <MenuItem value="private">Private</MenuItem>
                                             <MenuItem value="group">Group</MenuItem>
                                             <MenuItem value="public">Public</MenuItem>
+                                        </Select>
+                                    </FormControl>
+                                    <FormControl fullWidth margin="normal">
+                                        <InputLabel id="assigned-to-label">Assigned To</InputLabel>
+                                        <Select
+                                            labelId="assigned-to-label"
+                                            id="assigned_to"
+                                            name="assigned_to"
+                                            value={taskData.assigned_to}
+                                            label="Assigned to"
+                                            onChange={handleChange}
+                                        >
+                                            {users.map((item) => (
+                                                <MenuItem key={item._id} value={item._id}>
+                                                    {item.name}
+                                                </MenuItem>
+                                            ))}
                                         </Select>
                                     </FormControl>
                                 </Grid>
