@@ -228,11 +228,17 @@ app.get('/api/users/verify', (req, res) => {
 
 app.get('/api/users/logout', (req, res) => {
     try {
-        res.clearCookie('jwt', {
+        // res.clearCookie('jwt', {
+        //     httpOnly: false,
+        //     secure: true,
+        //     sameSite: 'none',
+        //     path: '/'
+        // });
+        res.cookie('jwt', '', {
             httpOnly: false,
             secure: true,
             sameSite: 'none',
-            path: '/'
+            maxAge: 0
         });
         res.json({ message: 'Logged out successfully' });
     } catch (error) {

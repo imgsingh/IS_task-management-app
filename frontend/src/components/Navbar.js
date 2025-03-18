@@ -14,12 +14,13 @@ function Navbar() {
 
     const removeCookie = () => {
         //document.cookie = "jwt=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=is-task-management-app.vercel.app";
-        //window.location.reload();
+        setTimeout(() => { window.location.reload(); }, 2000);
 
-        const allCookies = Cookies.get();
-        console.log("cookies", allCookies);
 
-        Cookies.remove('jwt');
+        // const allCookies = Cookies.get();
+        // console.log("cookies", allCookies);
+
+        // Cookies.remove('jwt');
     };
 
     const handleLogout = async () => {
