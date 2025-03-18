@@ -228,12 +228,6 @@ app.get('/api/users/verify', (req, res) => {
 
 app.get('/api/users/logout', (req, res) => {
     try {
-        // res.clearCookie('jwt', {
-        //     httpOnly: false,
-        //     secure: true,
-        //     sameSite: 'none',
-        //     path: '/'
-        // });
         res.cookie('jwt', '', {
             httpOnly: false,
             secure: true,
@@ -250,7 +244,7 @@ app.get('/api/users/logout', (req, res) => {
 // Authentication Middleware
 const authMiddleware = (req, res, next) => {
     try {
-        const token = req.cookies.jwt; // Access token from cookies
+        const token = req.cookies.jwt;
 
         if (!token) {
             return res.status(401).json({ message: 'Unauthorized' });
@@ -342,12 +336,45 @@ app.post('/api/tasks', authMiddleware, async (req, res) => {
             priority
         });
         const savedTask = await newTask.save();
+
+        const users = await User.find({}, { username: 1, name: 1 });
+
+        const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: process.env.EMAIL_USER,
+                pass: process.env.EMAIL_PASS,
+            },
+        });
+
+        const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: getUsernameById(users, assigned_to),
+            subject: 'SyncEdge: ' + title,
+            text: 'Task is assigned to ' + getNameById(users, assigned_to) + ' by ' + getNameById(users, assigned_by) + '. \nDescription: ' + description,
+        };
+
+        await transporter.sendMail(mailOptions);
         res.status(201).json(savedTask);
     } catch (error) {
         console.error('Error creating task:', error);
         res.status(500).json({ message: 'Failed to create task' });
     }
 });
+
+const { ObjectId } = require('mongodb');
+
+function getNameById(users, userid) {
+    const userIdObj = new ObjectId(userid);
+    const user = users.find((item) => item._id.equals(userIdObj));
+    return user.name;
+}
+
+function getUsernameById(users, userid) {
+    const userIdObj = new ObjectId(userid);
+    const user = users.find((item) => item._id.equals(userIdObj));
+    return user ? user.username : null;
+}
 
 app.put('/api/tasks/:id', authMiddleware, async (req, res) => {
     try {
@@ -385,6 +412,25 @@ app.put('/api/tasks/:id', authMiddleware, async (req, res) => {
         if (!updatedTask) {
             return res.status(404).json({ message: 'Task not found' });
         }
+        const users = await User.find({}, { username: 1, name: 1 });
+
+        const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: process.env.EMAIL_USER,
+                pass: process.env.EMAIL_PASS,
+            },
+        });
+
+        const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: getUsernameById(users, assigned_to),
+            subject: 'SyncEdge: ' + title,
+            text: 'Task updated which was assigned to ' + getNameById(users, assigned_to) + ' by ' + getNameById(users, assigned_by) + '. \nDescription: ' + description,
+        };
+
+        await transporter.sendMail(mailOptions);
+
         res.json(updatedTask);
 
     } catch (error) {
