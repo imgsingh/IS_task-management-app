@@ -284,9 +284,9 @@ function Task() {
         <>
             <Navbar />
             <Container>
-                <Grid container justifyContent="space-between" alignItems="center">
+                <Grid container justifyContent="space-between" alignItems="center" style={{ padding: '16px' }}>
                     <Grid item>
-                        <Typography variant="h4" gutterBottom>
+                        <Typography variant="h5" gutterBottom>
                             Task Board
                         </Typography>
                     </Grid>

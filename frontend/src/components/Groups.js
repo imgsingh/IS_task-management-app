@@ -117,7 +117,7 @@ function Groups() {
             <Grid container justifyContent="space-between" alignItems="center" style={{ padding: '16px' }}>
                 <Grid item>
                     <Typography variant="h5" gutterBottom>
-                        Groups
+                        Group Board
                     </Typography>
                 </Grid>
                 <Grid item>
