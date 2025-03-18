@@ -75,9 +75,9 @@ function Users() {
                                 </Typography>
                             </CardContent>
                             <CardActions>
-                                <IconButton onClick={() => handleEditUser(user)}>
+                                {sessionStorage.getItem('userId') === user._id && <IconButton onClick={() => handleEditUser(user)}>
                                     <EditIcon />
-                                </IconButton>
+                                </IconButton>}
                             </CardActions>
                         </Card>
                     </Grid>

@@ -4,6 +4,7 @@ import axios from 'axios';
 import config from '../config';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Avatar from '@mui/material/Avatar';
+import CircleIcon from '@mui/icons-material/Circle';
 import {
     Button,
     Typography,
@@ -21,6 +22,7 @@ import {
     MenuItem,
     Chip,
     IconButton,
+    Tooltip,
 } from '@mui/material';
 import { toast } from 'react-toastify';
 import Navbar from './Navbar';
@@ -62,8 +64,9 @@ function Task() {
         status: 1,
         completed: false,
         visibility: 'private',
-        assigned_by: undefined,
-        assigned_to: undefined
+        assigned_by: null,
+        assigned_to: null,
+        priority: 'Medium'
     });
     const [editingTask, setEditingTask] = useState(null);
     const [groups, setGroups] = useState([]);
@@ -111,8 +114,9 @@ function Task() {
             status: 1,
             completed: false,
             visibility: 'private',
-            assigned_by: undefined,
-            assigned_to: undefined,
+            assigned_by: null,
+            assigned_to: null,
+            priority: 'Medium'
         });
     };
 
@@ -130,12 +134,12 @@ function Task() {
             toast.error('Please enter a valid Resource Link');
             return;
         }
-        if (taskData.assigned_by === undefined) {
+        if (taskData.assigned_by === null) {
             toast.error('Assigned by user cannot be blank');
             return;
         }
 
-        if (taskData.assigned_to === undefined) {
+        if (taskData.assigned_to === null) {
             toast.error('Assigned to user cannot be blank');
             return;
         }
@@ -174,6 +178,7 @@ function Task() {
             visibility: task.visibility,
             assigned_by: task.assigned_by,
             assigned_to: task.assigned_to,
+            priority: task.priority
         });
         handleOpen();
     };
@@ -245,9 +250,34 @@ function Task() {
         return names.map((n) => n[0]).join('').toUpperCase();
     };
 
-    const getRandomColor = () => {
+    const getTooltip = (assignedToId, users) => {
+        if (!assignedToId || !users) return '';
+
+        // Find the user by id
+        const user = users.find((user) => user._id === assignedToId);
+
+        if (!user || !user.name) return '';
+
+        // Extract initials from the user's name
+        return user.name;
+    };
+
+    const getColorFromId = (id) => {
         const colors = ['#1976d2', '#d32f2f', '#388e3c', '#f57c00', '#7b1fa2'];
-        return colors[Math.floor(Math.random() * colors.length)];
+        // Simple hash function to convert id to a number
+        let hash = 0;
+        for (let i = 0; i < id.length; i++) {
+            hash = (hash << 5) - hash + id.charCodeAt(i);
+            hash |= 0; // Convert to 32-bit integer
+        }
+        // Use the absolute value of the hash to select a color
+        return colors[Math.abs(hash) % colors.length];
+    };
+
+    const priorityMap = {
+        High: { color: '#d32f2f', icon: <CircleIcon sx={{ color: '#d32f2f', fontSize: 'small' }} /> },
+        Medium: { color: '#f57c00', icon: <CircleIcon sx={{ color: '#f57c00', fontSize: 'small' }} /> },
+        Low: { color: '#388e3c', icon: <CircleIcon sx={{ color: '#388e3c', fontSize: 'small' }} /> },
     };
 
     return (
@@ -350,18 +380,29 @@ function Task() {
                                                         <DeleteIcon fontSize="small" />
                                                     </IconButton>
 
-                                                    {/* Initials in a circle */}
-                                                    {task.assigned_to && (
-                                                        <Avatar
-                                                            sx={{
-                                                                width: 32,
-                                                                height: 32,
-                                                                bgcolor: getRandomColor()
-                                                            }}
-                                                        >
-                                                            {getInitials(task.assigned_to, users)}
-                                                        </Avatar>
-                                                    )}
+                                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                        {/* Priority symbol */}
+                                                        {task.priority && (
+                                                            <Tooltip title={task.priority}>
+                                                                {priorityMap[task.priority]?.icon || <CircleIcon sx={{ color: '#9e9e9e', fontSize: 'small' }} />}
+                                                            </Tooltip>
+                                                        )}
+
+                                                        {/* Initials in a circle */}
+                                                        {task.assigned_to && (
+                                                            <Tooltip title={getTooltip(task.assigned_to, users)}>
+                                                                <Avatar
+                                                                    sx={{
+                                                                        width: 32,
+                                                                        height: 32,
+                                                                        bgcolor: getColorFromId(task.assigned_to)
+                                                                    }}
+                                                                >
+                                                                    {getInitials(task.assigned_to, users)}
+                                                                </Avatar>
+                                                            </Tooltip>
+                                                        )}
+                                                    </Box>
                                                 </Box>
 
                                                 {/* Status dropdown */}
@@ -401,6 +442,23 @@ function Task() {
                                         rows={11}
                                         sx={{ marginBottom: '19px' }}
                                     />
+                                    <FormControl fullWidth margin="normal">
+                                        <InputLabel id="assigned-to-label">Assigned To</InputLabel>
+                                        <Select
+                                            labelId="assigned-to-label"
+                                            id="assigned_to"
+                                            name="assigned_to"
+                                            value={taskData.assigned_to}
+                                            label="Assigned to"
+                                            onChange={handleChange}
+                                        >
+                                            {users.map((item) => (
+                                                <MenuItem key={item._id} value={item._id}>
+                                                    {item.name}
+                                                </MenuItem>
+                                            ))}
+                                        </Select>
+                                    </FormControl>
                                     <FormControl fullWidth margin="normal">
                                         <InputLabel id="assigned-by-label">Assigned By</InputLabel>
                                         <Select
@@ -487,20 +545,18 @@ function Task() {
                                         </Select>
                                     </FormControl>
                                     <FormControl fullWidth margin="normal">
-                                        <InputLabel id="assigned-to-label">Assigned To</InputLabel>
+                                        <InputLabel id="priority-label">Priority</InputLabel>
                                         <Select
-                                            labelId="assigned-to-label"
-                                            id="assigned_to"
-                                            name="assigned_to"
-                                            value={taskData.assigned_to}
-                                            label="Assigned to"
+                                            labelId="priority-label"
+                                            id="priority"
+                                            name="priority"
+                                            value={taskData.priority}
+                                            label="Priority"
                                             onChange={handleChange}
                                         >
-                                            {users.map((item) => (
-                                                <MenuItem key={item._id} value={item._id}>
-                                                    {item.name}
-                                                </MenuItem>
-                                            ))}
+                                            <MenuItem value="High">High</MenuItem>
+                                            <MenuItem value="Medium">Medium</MenuItem>
+                                            <MenuItem value="Low">Low</MenuItem>
                                         </Select>
                                     </FormControl>
                                 </Grid>

@@ -54,6 +54,7 @@ const taskSchema = new mongoose.Schema({
     owner: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     assigned_by: { type: String },
     assigned_to: { type: String },
+    priority: { type: String }
 });
 
 const groupSchema = new mongoose.Schema({
@@ -293,18 +294,6 @@ app.get('/api/users', authMiddleware, async (req, res) => {
     }
 });
 
-
-// Task Management Routes
-// app.get('/api/tasks', authMiddleware, async (req, res) => {
-//     try {
-//         const tasks = await Task.find({ owner: req.userId });
-//         res.json(tasks);
-//     } catch (error) {
-//         console.error('Error fetching tasks:', error);
-//         res.status(500).json({ message: 'Failed to fetch tasks' });
-//     }
-// });
-
 app.get('/api/tasks', authMiddleware, async (req, res) => {
     try {
         const userId = req.userId;
@@ -327,7 +316,7 @@ app.get('/api/tasks', authMiddleware, async (req, res) => {
 
 app.post('/api/tasks', authMiddleware, async (req, res) => {
     try {
-        const { title, description, link, tags, visibility, group } = req.body;
+        const { title, description, link, tags, visibility, group, assigned_by, assigned_to, priority } = req.body;
 
         // Validation: Check if group is provided
         if (!group) {
@@ -343,7 +332,8 @@ app.post('/api/tasks', authMiddleware, async (req, res) => {
             group,
             owner: req.userId,
             assigned_by,
-            assigned_to
+            assigned_to,
+            priority
         });
         const savedTask = await newTask.save();
         res.status(201).json(savedTask);
@@ -365,7 +355,8 @@ app.put('/api/tasks/:id', authMiddleware, async (req, res) => {
             status,
             group,
             assigned_by,
-            assigned_to
+            assigned_to,
+            priority
         } = req.body;
 
         const updatedTask = await Task.findOneAndUpdate(
@@ -380,7 +371,8 @@ app.put('/api/tasks/:id', authMiddleware, async (req, res) => {
                 status,
                 group,
                 assigned_by,
-                assigned_to
+                assigned_to,
+                priority
             },
             { new: true }
         );
@@ -411,7 +403,8 @@ app.delete('/api/tasks/:id', authMiddleware, async (req, res) => {
 // Group Management Routes
 app.get('/api/groups', authMiddleware, async (req, res) => {
     try {
-        const groups = await Group.find({ $or: [{ owner: req.userId }, { members: req.userId }] });
+        //const groups = await Group.find({ $or: [{ owner: req.userId }, { members: req.userId }] });
+        const groups = await Group.find({});
         res.json(groups);
     } catch (error) {
         console.error('Error fetching groups:', error);

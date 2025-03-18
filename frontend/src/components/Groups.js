@@ -140,12 +140,16 @@ function Groups() {
                                 </Typography>
                             </CardContent>
                             <CardActions>
-                                <IconButton onClick={() => handleEditGroup(group)}>
-                                    <EditIcon />
-                                </IconButton>
-                                <IconButton onClick={() => handleDeleteGroup(group._id)}>
-                                    <DeleteIcon />
-                                </IconButton>
+                                {sessionStorage.getItem('userId') === group.owner &&
+                                    <>
+                                        <IconButton onClick={() => handleEditGroup(group)}>
+                                            <EditIcon />
+                                        </IconButton>
+                                        <IconButton onClick={() => handleDeleteGroup(group._id)}>
+                                            <DeleteIcon />
+                                        </IconButton>
+                                    </>
+                                }
                             </CardActions>
                         </Card>
                     </Grid>
