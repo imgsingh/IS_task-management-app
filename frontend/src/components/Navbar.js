@@ -10,26 +10,13 @@ import axios from 'axios';
 
 function Navbar() {
 
-    const navigate = useNavigate();
-
-    const removeCookie = () => {
-        //document.cookie = "jwt=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=is-task-management-app.vercel.app";
-        setTimeout(() => { window.location.reload(); }, 2000);
-
-
-        // const allCookies = Cookies.get();
-        // console.log("cookies", allCookies);
-
-        // Cookies.remove('jwt');
-    };
-
     const handleLogout = async () => {
         try {
-            // await axios.get(`${config.apiUrl}/api/users/logout`);
-            removeCookie();
+            const response = await axios.get(`${config.apiUrl}/api/users/logout`);
+            console.log(response)
+            setTimeout(() => { window.location.reload(); }, 2000);
         } catch (error) {
             console.error('Logout failed:', error);
-            // Optionally, display an error message to the user
         }
     };
 
