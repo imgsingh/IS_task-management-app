@@ -238,7 +238,7 @@ app.get('/api/users/logout', (req, res) => {
             httpOnly: false,
             secure: true,
             sameSite: 'none',
-            maxAge: 0
+            expires: new Date(0)
         });
         res.json({ message: 'Logged out successfully' });
     } catch (error) {
