@@ -14,7 +14,7 @@ function Navbar() {
 
     const removeCookie = () => {
         document.cookie = "jwt=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=is-task-management-app.vercel.app";
-        window.location.reload();
+        //window.location.reload();
     };
 
     const handleLogout = async () => {
