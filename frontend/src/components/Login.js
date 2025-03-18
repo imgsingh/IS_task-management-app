@@ -2,14 +2,11 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import config from './../config';
-import Cookies from 'js-cookie';
 import {
     Avatar,
     Button,
     CssBaseline,
     TextField,
-    FormControlLabel,
-    Checkbox,
     Link,
     Grid,
     Box,
@@ -42,6 +39,7 @@ function Login() {
         try {
             const response = await axios.post(`${config.apiUrl}/api/users/login`, formData);
             if (response.data.token) {
+                sessionStorage.setItem('userId', response.data.userId);
                 window.location.reload();
             } else {
                 toast.error('Login failed!');

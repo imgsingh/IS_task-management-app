@@ -20,12 +20,12 @@ function Home() {
             <Navbar />
             <div>
                 <Typography variant="h4" gutterBottom>
-                    Welcome to the Sh!tList
+                    Welcome to the SyncEdge
                 </Typography>
                 <Typography variant="body1" paragraph>
                     Organize the chaos, one task at a time.
                 </Typography>
-                <img src={image} alt="Sh!tList Logo" style={{ width: '100px', height: 'auto' }} />
+                <img src={image} alt="SyncEdge Logo" style={{ width: '100px', height: 'auto' }} />
 
                 {/* <Typography variant="h6" gutterBottom>
                     Created by:

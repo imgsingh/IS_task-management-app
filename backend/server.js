@@ -16,7 +16,7 @@ const PORT = process.env.PORT || 5000;
 //     credentials: true,
 // }));
 app.use(cors({
-    origin: 'https://is-task-management-app-frontend.vercel.app', // Production origin
+    origin: 'https://syncedge.vercel.app', // Production origin
     credentials: true,
 }));
 app.use(express.json());
@@ -52,6 +52,9 @@ const taskSchema = new mongoose.Schema({
     status: { type: Number, default: 1 },
     group: { type: mongoose.Schema.Types.ObjectId, ref: 'Group' },
     owner: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    assigned_by: { type: String },
+    assigned_to: { type: String },
+    priority: { type: String }
 });
 
 const groupSchema = new mongoose.Schema({
@@ -283,24 +286,13 @@ app.put('/api/users/:id', authMiddleware, async (req, res) => {
 
 app.get('/api/users', authMiddleware, async (req, res) => {
     try {
-        const users = await User.find({}); // Fetch only name and username
+        const users = await User.find({}, { username: 1, name: 1 }); // Fetch only name and username
         res.json(users);
     } catch (error) {
         console.error('Error fetching users:', error);
         res.status(500).json({ message: 'Failed to fetch users' });
     }
 });
-
-// Task Management Routes
-// app.get('/api/tasks', authMiddleware, async (req, res) => {
-//     try {
-//         const tasks = await Task.find({ owner: req.userId });
-//         res.json(tasks);
-//     } catch (error) {
-//         console.error('Error fetching tasks:', error);
-//         res.status(500).json({ message: 'Failed to fetch tasks' });
-//     }
-// });
 
 app.get('/api/tasks', authMiddleware, async (req, res) => {
     try {
@@ -324,7 +316,7 @@ app.get('/api/tasks', authMiddleware, async (req, res) => {
 
 app.post('/api/tasks', authMiddleware, async (req, res) => {
     try {
-        const { title, description, link, tags, visibility, group } = req.body;
+        const { title, description, link, tags, visibility, group, assigned_by, assigned_to, priority } = req.body;
 
         // Validation: Check if group is provided
         if (!group) {
@@ -339,6 +331,9 @@ app.post('/api/tasks', authMiddleware, async (req, res) => {
             visibility,
             group,
             owner: req.userId,
+            assigned_by,
+            assigned_to,
+            priority
         });
         const savedTask = await newTask.save();
         res.status(201).json(savedTask);
@@ -350,11 +345,35 @@ app.post('/api/tasks', authMiddleware, async (req, res) => {
 
 app.put('/api/tasks/:id', authMiddleware, async (req, res) => {
     try {
-        const { title, description, link, tags, visibility, completed, status, group } = req.body;
+        const {
+            title,
+            description,
+            link,
+            tags,
+            visibility,
+            completed,
+            status,
+            group,
+            assigned_by,
+            assigned_to,
+            priority
+        } = req.body;
 
         const updatedTask = await Task.findOneAndUpdate(
             { _id: req.params.id },
-            { title, description, link, tags, visibility, completed, status, group },
+            {
+                title,
+                description,
+                link,
+                tags,
+                visibility,
+                completed,
+                status,
+                group,
+                assigned_by,
+                assigned_to,
+                priority
+            },
             { new: true }
         );
         if (!updatedTask) {
@@ -384,7 +403,8 @@ app.delete('/api/tasks/:id', authMiddleware, async (req, res) => {
 // Group Management Routes
 app.get('/api/groups', authMiddleware, async (req, res) => {
     try {
-        const groups = await Group.find({ $or: [{ owner: req.userId }, { members: req.userId }] });
+        //const groups = await Group.find({ $or: [{ owner: req.userId }, { members: req.userId }] });
+        const groups = await Group.find({});
         res.json(groups);
     } catch (error) {
         console.error('Error fetching groups:', error);
