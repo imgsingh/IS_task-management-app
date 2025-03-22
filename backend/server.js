@@ -302,6 +302,8 @@ app.get('/api/tasks', authMiddleware, async (req, res) => {
         tasks = await Task.find({
             $or: [
                 { owner: userId }, // User's own tasks
+                { assigned_by: userId }, // Tasks assigned by the user
+                { assigned_to: userId }, // Tasks assigned to the user
                 { visibility: 'public' }, // All public tasks
                 { visibility: 'group', group: { $in: await Group.find({ members: userId }).distinct('_id') } }, // Group tasks where the user is a member
             ],
